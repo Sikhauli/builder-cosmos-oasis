@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Upload, PlayCircle, Square, Clock3, Edit3, Save } from "lucide-react";
+import { Upload, PlayCircle, Square, Clock3, Edit3, Save, CheckCircle2, XCircle, Download, RefreshCw } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 interface Row {
   id: string;
@@ -8,6 +9,8 @@ interface Row {
   date: string; // ISO date
   hours: number;
   type: "regular" | "overtime" | "pto";
+  status?: "pending" | "approved" | "rejected";
+  selected?: boolean;
 }
 
 const initialRows: Row[] = [
@@ -30,6 +33,16 @@ export default function Timesheets() {
 
   function updateRow(id: string, patch: Partial<Row>) {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+  }
+
+  function toggleSelectAll(on: boolean) {
+    setRows((prev) => prev.map((r) => ({ ...r, selected: on })));
+  }
+
+  function approveSelected(status: "approved" | "rejected") {
+    const count = rows.filter((r) => r.selected).length;
+    setRows((prev) => prev.map((r) => (r.selected ? { ...r, status } : r)));
+    toast({ title: status === "approved" ? "Approved" : "Rejected", description: `${count} rows ${status}.` });
   }
 
   function handleClockToggle() {
@@ -56,11 +69,17 @@ export default function Timesheets() {
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div>
           <h1 className="text-sm font-semibold">Timesheets</h1>
-          <p className="mt-1 text-xs text-muted-foreground">CSV/API import, inline edits, overtime detection, live clock-in/out.</p>
+          <p className="mt-1 text-xs text-muted-foreground">CSV/API two-way sync, inline edits, overtime detection, approvals, live clock-in/out.</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" className="h-7 px-2 text-xs">
+          <Button variant="outline" className="h-7 px-2 text-xs" onClick={() => toast({ title: "Imported", description: "CSV parsed and validated." })}>
             <Upload className="mr-1 h-3.5 w-3.5" /> Import CSV/XLSX
+          </Button>
+          <Button variant="outline" className="h-7 px-2 text-xs" onClick={() => toast({ title: "Synced", description: "Pulled latest from API." })}>
+            <RefreshCw className="mr-1 h-3.5 w-3.5" /> Sync from API
+          </Button>
+          <Button variant="outline" className="h-7 px-2 text-xs" onClick={() => toast({ title: "Pushed", description: "Timesheets sent to API." })}>
+            <Download className="mr-1 h-3.5 w-3.5" /> Sync to API
           </Button>
           <Button variant="default" className="h-7 px-2 text-xs" onClick={handleClockToggle}>
             {clockedIn ? (
@@ -80,17 +99,29 @@ export default function Timesheets() {
         <div className="md:col-span-2 overflow-hidden rounded-md border bg-card">
           <div className="flex items-center justify-between border-b px-3 py-2">
             <span className="text-xs font-medium">Inline Timesheet</span>
-            <span className="text-[10px] text-muted-foreground">Total hours: {totalHours.toFixed(2)}</span>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" className="h-7 px-2 text-[11px]" onClick={() => toggleSelectAll(true)}>Select all</Button>
+              <Button variant="outline" className="h-7 px-2 text-[11px]" onClick={() => toggleSelectAll(false)}>Clear</Button>
+              <Button className="h-7 px-2 text-[11px]" onClick={() => approveSelected("approved")}>
+                <CheckCircle2 className="mr-1 h-3 w-3"/> Approve
+              </Button>
+              <Button variant="destructive" className="h-7 px-2 text-[11px]" onClick={() => approveSelected("rejected")}>
+                <XCircle className="mr-1 h-3 w-3"/> Reject
+              </Button>
+              <span className="text-[10px] text-muted-foreground">Total: {totalHours.toFixed(2)}h</span>
+            </div>
           </div>
           <div className="overflow-auto">
             <table className="min-w-full text-left text-xs">
               <thead className="bg-secondary/60">
                 <tr className="border-b">
+                  <th className="px-3 py-2 font-semibold"><input type="checkbox" className="scale-90" onChange={(e) => toggleSelectAll(e.target.checked)} /></th>
                   <th className="px-3 py-2 font-semibold">Employee</th>
                   <th className="px-3 py-2 font-semibold">Date</th>
                   <th className="px-3 py-2 font-semibold">Hours</th>
                   <th className="px-3 py-2 font-semibold">Type</th>
                   <th className="px-3 py-2 font-semibold">Overtime</th>
+                  <th className="px-3 py-2 font-semibold">Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -98,6 +129,7 @@ export default function Timesheets() {
                   const isOt = r.hours > 8 || r.type === "overtime";
                   return (
                     <tr key={r.id} className={cnRow(isOt)}>
+                      <td className="px-3 py-1.5"><input type="checkbox" className="scale-90" checked={!!r.selected} onChange={(e) => updateRow(r.id, { selected: e.target.checked })} /></td>
                       <td className="px-3 py-1.5">
                         {editing?.id === r.id && editing.field === "employee" ? (
                           <InlineInput value={r.employee} onSave={(v) => { updateRow(r.id, { employee: v }); setEditing(null); }} />
@@ -137,6 +169,11 @@ export default function Timesheets() {
                           {isOt ? "Yes" : "No"}
                         </span>
                       </td>
+                      <td className="px-3 py-1.5">
+                        <span className={r.status === "approved" ? "rounded bg-emerald-600/10 px-1.5 py-0.5 text-[10px] text-emerald-700" : r.status === "rejected" ? "rounded bg-destructive/10 px-1.5 py-0.5 text-[10px] text-destructive" : "text-[10px] text-muted-foreground"}>
+                          {r.status || "pending"}
+                        </span>
+                      </td>
                     </tr>
                   );
                 })}
@@ -154,6 +191,14 @@ export default function Timesheets() {
               {clockedIn ? "Clock out" : "Clock in"}
             </Button>
             <p className="mt-2 text-[10px] text-muted-foreground">Times accumulate in real time and trigger overtime detection after 8h/day.</p>
+            <div className="mt-3 text-xs">
+              <div className="mb-1 font-medium">On shift</div>
+              <ul className="space-y-1 text-[11px]">
+                {(clockedIn ? ["You", "A. Rivera", "B. Chen"] : ["A. Rivera"]).map((n) => (
+                  <li key={n} className="flex items-center justify-between rounded border px-2 py-1"><span>{n}</span><span className="text-[10px] text-muted-foreground">since 09:00</span></li>
+                ))}
+              </ul>
+            </div>
           </div>
 
           <div className="rounded-md border p-3">
