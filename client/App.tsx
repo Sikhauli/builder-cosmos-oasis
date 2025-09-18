@@ -14,6 +14,9 @@ import PlaceholderPage from "@/components/layout/PlaceholderPage";
 import Payroll from "@/pages/Payroll";
 import Employees from "@/pages/Employees";
 import Integrations from "@/pages/Integrations";
+import Compliance from "@/pages/Compliance";
+import SettingsPage from "@/pages/Settings";
+import AuditLog from "@/pages/AuditLog";
 
 const queryClient = new QueryClient();
 
@@ -31,9 +34,9 @@ const App = () => (
             <Route path="/employees" element={<Employees />} />
             <Route path="/payroll" element={<Payroll />} />
             <Route path="/integrations" element={<Integrations />} />
-            <Route path="/compliance" element={<PlaceholderPage title="Compliance" description="Track tax forms, filing calendars, statuses, and audit‑ready docs." />} />
-            <Route path="/audit-log" element={<PlaceholderPage title="Audit Log" description="Review detailed security and payroll activity logs." />} />
-            <Route path="/settings" element={<PlaceholderPage title="Settings" description="RBAC, MFA, masking, residency controls, and org preferences." />} />
+            <Route path="/compliance" element={<Compliance />} />
+            <Route path="/audit-log" element={<AuditLog />} />
+            <Route path="/settings" element={<SettingsPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
