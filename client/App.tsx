@@ -11,6 +11,7 @@ import NotFound from "./pages/NotFound";
 import Timesheets from "./pages/Timesheets";
 import TopNav from "@/components/layout/TopNav";
 import PlaceholderPage from "@/components/layout/PlaceholderPage";
+import Payroll from "@/pages/Payroll";
 
 const queryClient = new QueryClient();
 
@@ -26,7 +27,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/timesheets" element={<Timesheets />} />
             <Route path="/employees" element={<PlaceholderPage title="Employees" description="Manage employee data, onboarding, digital contracts, and tax forms." />} />
-            <Route path="/payroll" element={<PlaceholderPage title="Payroll" description="Run scheduled and ad‑hoc payroll, stage approvals, and review GL." />} />
+            <Route path="/payroll" element={<Payroll />} />
             <Route path="/integrations" element={<PlaceholderPage title="Integrations" description="Connect QuickBooks, Xero, Sage, HRIS, CSV/XLSX, REST APIs & webhooks." />} />
             <Route path="/compliance" element={<PlaceholderPage title="Compliance" description="Track tax forms, filing calendars, statuses, and audit‑ready docs." />} />
             <Route path="/audit-log" element={<PlaceholderPage title="Audit Log" description="Review detailed security and payroll activity logs." />} />
