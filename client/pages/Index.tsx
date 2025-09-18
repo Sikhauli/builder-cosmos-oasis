@@ -91,7 +91,7 @@ export default function Index() {
       <div className="mt-4 grid gap-3 lg:grid-cols-3">
         <section className="rounded-md border p-3">
           <header className="mb-2 inline-flex items-center gap-2 text-xs font-medium"><Users className="h-3.5 w-3.5"/> Employees & contractors</header>
-          <p className="text-[11px] text-muted-foreground">Digital contracts, tax forms, self‑service edits, e���sign, flexible payout rails.</p>
+          <p className="text-[11px] text-muted-foreground">Digital contracts, tax forms, self-service edits, e-sign, flexible payout rails.</p>
         </section>
         <section className="rounded-md border p-3">
           <header className="mb-2 inline-flex items-center gap-2 text-xs font-medium"><Webhook className="h-3.5 w-3.5"/> Integrations</header>
