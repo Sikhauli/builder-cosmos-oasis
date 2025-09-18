@@ -106,11 +106,19 @@
   }
 
   /* Compact form controls for tiny text aesthetic */
-  input, select, textarea {
+  input,
+  select,
+  textarea {
     @apply text-xs;
   }
 
-  h1 { @apply text-sm font-semibold; }
-  h2 { @apply text-sm font-semibold; }
-  h3 { @apply text-xs font-semibold; }
+  h1 {
+    @apply text-sm font-semibold;
+  }
+  h2 {
+    @apply text-sm font-semibold;
+  }
+  h3 {
+    @apply text-xs font-semibold;
+  }
 }

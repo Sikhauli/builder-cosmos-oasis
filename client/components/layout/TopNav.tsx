@@ -1,6 +1,19 @@
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { BadgeCheck, Clock, FileText, Fingerprint, Layers3, ListChecks, Shield, Users, Webhook, Settings, Play, ScrollText } from "lucide-react";
+import {
+  BadgeCheck,
+  Clock,
+  FileText,
+  Fingerprint,
+  Layers3,
+  ListChecks,
+  Shield,
+  Users,
+  Webhook,
+  Settings,
+  Play,
+  ScrollText,
+} from "lucide-react";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: Layers3 },

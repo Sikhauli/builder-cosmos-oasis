@@ -15,12 +15,16 @@ export function PlaceholderPage({
         <div>
           <h1 className="text-sm font-semibold tracking-tight">{title}</h1>
           {description ? (
-            <p className="mt-1 max-w-2xl text-xs text-muted-foreground">{description}</p>
+            <p className="mt-1 max-w-2xl text-xs text-muted-foreground">
+              {description}
+            </p>
           ) : null}
         </div>
       </div>
       <div className="rounded-md border bg-card p-3 text-xs text-muted-foreground">
-        This section is ready to implement based on your priorities. Use the chat to describe the exact data and interactions you want here and we will wire it up.
+        This section is ready to implement based on your priorities. Use the
+        chat to describe the exact data and interactions you want here and we
+        will wire it up.
       </div>
     </div>
   );
