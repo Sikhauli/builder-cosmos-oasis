@@ -104,7 +104,7 @@ import { toast } from "@/hooks/use-toast";
           <header className="mb-2 inline-flex items-center gap-2 text-xs font-medium"><Database className="h-3.5 w-3.5"/> HRIS / ATS</header>
           <ul className="space-y-2 text-[11px]">
             <li className="rounded border p-2">Sync employees and reconcile new hires from HRIS.</li>
-            <li className="rounded border p-2">ATS offers candidate -> employee conversion.</li>
+            <li className="rounded border p-2">ATS offers candidate → employee conversion.</li>
             <li className="rounded border p-2">Schedule daily pull or manual sync.</li>
           </ul>
           <Button variant="outline" className="mt-2 h-7 w-full px-2 text-xs" onClick={() => toast({ title: "Synced", description: "HRIS data pulled." })}>Sync now</Button>
