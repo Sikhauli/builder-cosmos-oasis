@@ -8,6 +8,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import Timesheets from "./pages/Timesheets";
+import TopNav from "@/components/layout/TopNav";
+import PlaceholderPage from "@/components/layout/PlaceholderPage";
 
 const queryClient = new QueryClient();
 
@@ -17,11 +20,21 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <TopNav />
+        <main className="min-h-[calc(100vh-44px)]">
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/timesheets" element={<Timesheets />} />
+            <Route path="/employees" element={<PlaceholderPage title="Employees" description="Manage employee data, onboarding, digital contracts, and tax forms." />} />
+            <Route path="/payroll" element={<PlaceholderPage title="Payroll" description="Run scheduled and ad‑hoc payroll, stage approvals, and review GL." />} />
+            <Route path="/integrations" element={<PlaceholderPage title="Integrations" description="Connect QuickBooks, Xero, Sage, HRIS, CSV/XLSX, REST APIs & webhooks." />} />
+            <Route path="/compliance" element={<PlaceholderPage title="Compliance" description="Track tax forms, filing calendars, statuses, and audit‑ready docs." />} />
+            <Route path="/audit-log" element={<PlaceholderPage title="Audit Log" description="Review detailed security and payroll activity logs." />} />
+            <Route path="/settings" element={<PlaceholderPage title="Settings" description="RBAC, MFA, masking, residency controls, and org preferences." />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </main>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
