@@ -17,6 +17,7 @@ import Integrations from "@/pages/Integrations";
 import Compliance from "@/pages/Compliance";
 import SettingsPage from "@/pages/Settings";
 import AuditLog from "@/pages/AuditLog";
+import PayRuns from "@/pages/PayRuns";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/timesheets" element={<Timesheets />} />
+            <Route path="/pay-runs" element={<PayRuns />} />
             <Route path="/employees" element={<Employees />} />
             <Route path="/payroll" element={<Payroll />} />
             <Route path="/integrations" element={<Integrations />} />
