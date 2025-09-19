@@ -249,7 +249,9 @@ export default function Payroll() {
               Ad‑hoc
             </button>
           </div>
-          <Button asChild variant="outline" className="h-7 px-2 text-xs"><a href="/pay-runs">Manage Pay Runs</a></Button>
+          <Button asChild variant="outline" className="h-7 px-2 text-xs">
+            <a href="/pay-runs">Manage Pay Runs</a>
+          </Button>
           <Button
             className="h-7 px-2 text-xs"
             onClick={() => {
