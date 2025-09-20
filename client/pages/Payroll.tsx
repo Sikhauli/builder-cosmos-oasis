@@ -153,7 +153,7 @@ export default function Payroll() {
   const [lines, setLines] = useState<LineItem[]>(initialLines);
   const [locked, setLocked] = useState(false);
 
-  function download(filename: string, content: string, mime = "text/csv") {
+  function download(filename, content, mime = "text/csv") {
     const blob = new Blob([content], { type: mime + ";charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
