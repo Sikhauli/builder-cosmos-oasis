@@ -246,6 +246,7 @@ export default function PayRuns() {
       {showNew ? (
         <NewRunModal
           people={people}
+          runs={runs}
           onClose={() => setShowNew(false)}
           onCreate={(run) => {
             setRuns((p) => [run, ...p]);
@@ -279,12 +280,23 @@ function Td({ children, className }) {
   return <td className={"px-2 py-1.5 " + (className || "")}>{children}</td>;
 }
 
-function NewRunModal({ people, onClose, onCreate }) {
+function NewRunModal({ people, runs, onClose, onCreate }) {
   const [name, setName] = useState("New run");
   const [cohort, setCohort] = useState("Permanent");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [q, setQ] = useState("");
   const [selected, setSelected] = useState({});
+
+  const takenMap = useMemo(() => {
+    const byId = {};
+    for (const r of runs) {
+      if (r.payday !== date) continue;
+      for (const id of r.people) {
+        if (!byId[id]) byId[id] = r.name;
+      }
+    }
+    return byId;
+  }, [runs, date]);
 
   const filtered = useMemo(
     () =>
@@ -300,7 +312,7 @@ function NewRunModal({ people, onClose, onCreate }) {
 
   function toggleAll(on) {
     const obj = {};
-    for (const p of filtered) obj[p.id] = on;
+    for (const p of filtered) if (!takenMap[p.id]) obj[p.id] = on;
     setSelected((s) => ({ ...s, ...obj }));
   }
 
@@ -344,10 +356,29 @@ function NewRunModal({ people, onClose, onCreate }) {
               type="date"
               className="mt-1 w-full rounded border px-2 py-1 text-[11px]"
               value={date}
-              onChange={(e) => setDate(e.target.value)}
+              onChange={(e) => {
+                const d = e.target.value;
+                setDate(d);
+                const nextTaken = (() => {
+                  const byId = {};
+                  for (const r of runs) {
+                    if (r.payday !== d) continue;
+                    for (const id of r.people) if (!byId[id]) byId[id] = r.name;
+                  }
+                  return byId;
+                })();
+                setSelected((s) => {
+                  const copy = { ...s };
+                  for (const id of Object.keys(copy)) if (nextTaken[id]) delete copy[id];
+                  return copy;
+                });
+              }}
             />
             <p className="mt-2 text-[10px] text-muted-foreground">
               Taxes estimated — final at filing.
+            </p>
+            <p className="mt-1 text-[10px] text-muted-foreground">
+              People already assigned on this payday are disabled.
             </p>
           </div>
           <div className="rounded border p-3 md:col-span-2">
@@ -390,29 +421,40 @@ function NewRunModal({ people, onClose, onCreate }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((p) => (
-                    <tr key={p.id} className="border-b">
-                      <Td>
-                        <label className="inline-flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            className="scale-90"
-                            checked={!!selected[p.id]}
-                            onChange={(e) =>
-                              setSelected((s) => ({
-                                ...s,
-                                [p.id]: e.target.checked,
-                              }))
-                            }
-                          />
-                          <span className="font-medium">{p.name}</span>
-                          <span className="text-muted-foreground">
-                            • {p.role} • {p.dept}
-                          </span>
-                        </label>
-                      </Td>
-                    </tr>
-                  ))}
+                  {filtered.map((p) => {
+                    const takenBy = takenMap[p.id];
+                    const disabled = !!takenBy;
+                    return (
+                      <tr key={p.id} className="border-b">
+                        <Td>
+                          <label className="inline-flex flex-wrap items-center gap-2">
+                            <input
+                              type="checkbox"
+                              className="scale-90"
+                              disabled={disabled}
+                              checked={disabled ? false : !!selected[p.id]}
+                              onChange={(e) =>
+                                !disabled &&
+                                setSelected((s) => ({
+                                  ...s,
+                                  [p.id]: e.target.checked,
+                                }))
+                              }
+                            />
+                            <span className="font-medium">{p.name}</span>
+                            <span className="text-muted-foreground">
+                              • {p.role} • {p.dept}
+                            </span>
+                            {disabled ? (
+                              <span className="rounded bg-amber-500/10 px-1.5 py-0.5 text-[10px] text-amber-700">
+                                already in {takenBy}
+                              </span>
+                            ) : null}
+                          </label>
+                        </Td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
