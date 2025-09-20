@@ -251,7 +251,7 @@ export default function Payroll() {
       usd(r.net, r.it.currency).toFixed(2),
     ]);
     const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
-    download(`gl_export_${new Date().toISOString().slice(0,10)}.csv`, csv);
+    download(`gl_export_${new Date().toISOString().slice(0, 10)}.csv`, csv);
   }
 
   function exportGLJson() {
@@ -269,7 +269,7 @@ export default function Payroll() {
       usdNet: usd(r.net, r.it.currency),
     }));
     download(
-      `gl_export_${new Date().toISOString().slice(0,10)}.json`,
+      `gl_export_${new Date().toISOString().slice(0, 10)}.json`,
       JSON.stringify(payload, null, 2),
       "application/json",
     );
