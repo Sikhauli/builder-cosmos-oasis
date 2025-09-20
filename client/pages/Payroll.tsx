@@ -153,6 +153,18 @@ export default function Payroll() {
   const [lines, setLines] = useState<LineItem[]>(initialLines);
   const [locked, setLocked] = useState(false);
 
+  function download(filename: string, content: string, mime = "text/csv") {
+    const blob = new Blob([content], { type: mime + ";charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   const computed = useMemo(() => {
     return lines.map((it) => {
       const gross =
@@ -206,6 +218,62 @@ export default function Payroll() {
     }
     return { gross, net };
   }, [totalsByCurrency]);
+
+  function exportGLCsv() {
+    const headers = [
+      "name",
+      "type",
+      "currency",
+      "gross",
+      "preTax",
+      "tax_federal",
+      "tax_state",
+      "tax_local",
+      "postTax",
+      "garnishments",
+      "employerWorkersComp",
+      "net",
+      "usdNet",
+    ];
+    const rows = computed.map((r) => [
+      r.it.name,
+      r.it.type,
+      r.it.currency,
+      r.gross.toFixed(2),
+      r.preTax.toFixed(2),
+      r.tx.federal.toFixed(2),
+      r.tx.state.toFixed(2),
+      r.tx.local.toFixed(2),
+      r.postTax.toFixed(2),
+      r.garn.toFixed(2),
+      r.employerWorkersComp.toFixed(2),
+      r.net.toFixed(2),
+      usd(r.net, r.it.currency).toFixed(2),
+    ]);
+    const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    download(`gl_export_${new Date().toISOString().slice(0,10)}.csv`, csv);
+  }
+
+  function exportGLJson() {
+    const payload = computed.map((r) => ({
+      name: r.it.name,
+      type: r.it.type,
+      currency: r.it.currency,
+      gross: r.gross,
+      preTax: r.preTax,
+      taxes: r.tx,
+      postTax: r.postTax,
+      garnishments: r.garn,
+      employerWorkersComp: r.employerWorkersComp,
+      net: r.net,
+      usdNet: usd(r.net, r.it.currency),
+    }));
+    download(
+      `gl_export_${new Date().toISOString().slice(0,10)}.json`,
+      JSON.stringify(payload, null, 2),
+      "application/json",
+    );
+  }
 
   function update(id: string, patch: Partial<LineItem>) {
     setLines((prev) => prev.map((l) => (l.id === id ? { ...l, ...patch } : l)));
@@ -269,12 +337,18 @@ export default function Payroll() {
           <Button
             variant="outline"
             className="h-7 px-2 text-xs"
-            onClick={() =>
-              toast({ title: "Exported", description: "CSV export generated." })
-            }
+            onClick={exportGLCsv}
           >
             <Download className="mr-1 h-3.5 w-3.5" />
-            Export CSV
+            Export GL (CSV)
+          </Button>
+          <Button
+            variant="outline"
+            className="h-7 px-2 text-xs"
+            onClick={exportGLJson}
+          >
+            <Download className="mr-1 h-3.5 w-3.5" />
+            Export GL (JSON)
           </Button>
         </div>
       </div>
