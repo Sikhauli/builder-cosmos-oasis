@@ -6,7 +6,6 @@ import {
   Globe2,
   HandCoins,
   IdCard,
-  Mail,
   Plus,
   Save,
   Shield,
@@ -14,6 +13,9 @@ import {
   Wallet,
   CalendarClock,
   Download,
+  Search,
+  Edit3,
+  X,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
@@ -71,12 +73,28 @@ const seed: Contractor[] = [
 
 export default function Employees() {
   const [contractors, setContractors] = useState<Contractor[]>(seed);
+  const [q, setQ] = useState("");
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const [editing, setEditing] = useState<Contractor | null>(null);
   const [form, setForm] = useState<Partial<Contractor>>({
     residency: "US",
     currency: "USD",
     rail: "ACH",
     schedule: "biweekly",
   });
+
+  const filtered = useMemo(() => {
+    const term = q.toLowerCase();
+    return contractors.filter((c) =>
+      [c.name, c.email, c.residency, c.currency, c.rail, c.schedule]
+        .join(" ")
+        .toLowerCase()
+        .includes(term),
+    );
+  }, [contractors, q]);
+
+  const visible = useMemo(() => filtered.slice(0, page * pageSize), [filtered, page]);
 
   function addContractor() {
     if (!form.name || !form.email) {
@@ -95,6 +113,7 @@ export default function Employees() {
       docs: { contract: true, taxForm: false, permit: true },
     };
     setContractors((p) => [c, ...p]);
+    setPage(1);
     toast({
       title: "Invited",
       description: `Onboarding email sent to ${c.email}.`,
@@ -268,9 +287,23 @@ export default function Employees() {
               <span className="font-medium inline-flex items-center gap-1">
                 <Wallet className="h-3.5 w-3.5" /> Payout scheduling
               </span>
-              <span className="text-[10px] text-muted-foreground">
-                Supports ACH, bank, Payoneer, local partners
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="hidden text-[10px] text-muted-foreground md:block">
+                  Supports ACH, bank, Payoneer, local partners
+                </span>
+                <div className="inline-flex items-center gap-2 rounded border bg-white px-2 py-1">
+                  <Search className="h-3.5 w-3.5 text-muted-foreground" />
+                  <input
+                    value={q}
+                    onChange={(e) => {
+                      setQ(e.target.value);
+                      setPage(1);
+                    }}
+                    placeholder="Search name, email, rail..."
+                    className="w-48 text-[11px] outline-none"
+                  />
+                </div>
+              </div>
             </div>
             <div className="overflow-auto">
               <table className="min-w-[900px] text-left text-xs">
@@ -288,7 +321,7 @@ export default function Employees() {
                   </tr>
                 </thead>
                 <tbody>
-                  {contractors.map((c) => (
+                  {visible.map((c) => (
                     <tr key={c.id} className="border-b">
                       <Td>{c.name}</Td>
                       <Td className="text-muted-foreground">{c.email}</Td>
@@ -374,6 +407,13 @@ export default function Employees() {
                             Schedule
                           </Button>
                           <Button
+                            variant="outline"
+                            className="h-6 px-2 text-[10px]"
+                            onClick={() => setEditing(c)}
+                          >
+                            <Edit3 className="mr-1 h-3 w-3" /> Edit
+                          </Button>
+                          <Button
                             className="h-6 px-2 text-[10px]"
                             onClick={() =>
                               toast({
@@ -394,7 +434,7 @@ export default function Employees() {
             </div>
             <div className="flex items-center justify-between border-t px-3 py-2 text-[11px]">
               <div className="text-muted-foreground">
-                {readyCount} ready for payout
+                {readyCount} ready for payout • Showing {visible.length} of {filtered.length}
               </div>
               <div className="flex items-center gap-2">
                 <Button
@@ -408,6 +448,15 @@ export default function Employees() {
                 >
                   Batch schedule
                 </Button>
+                {visible.length < filtered.length ? (
+                  <Button
+                    variant="outline"
+                    className="h-7 px-2 text-xs"
+                    onClick={() => setPage((p) => p + 1)}
+                  >
+                    Load more
+                  </Button>
+                ) : null}
                 <Button
                   variant="outline"
                   className="h-7 px-2 text-xs"
@@ -442,6 +491,18 @@ export default function Employees() {
           </ul>
         </section>
       </div>
+
+      {editing ? (
+        <EditContractorModal
+          contractor={editing}
+          onClose={() => setEditing(null)}
+          onSave={(updated) => {
+            setContractors((p) => p.map((c) => (c.id === updated.id ? updated : c)));
+            setEditing(null);
+            toast({ title: "Saved", description: `${updated.name} updated.` });
+          }}
+        />
+      ) : null}
     </div>
   );
 }
@@ -457,4 +518,95 @@ function Td({
   className?: string;
 }) {
   return <td className={"px-2 py-1.5 " + (className || "")}>{children}</td>;
+}
+
+function EditContractorModal({
+  contractor,
+  onClose,
+  onSave,
+}: {
+  contractor: Contractor;
+  onClose: () => void;
+  onSave: (c: Contractor) => void;
+}) {
+  const [form, setForm] = useState<Contractor>({ ...contractor });
+  return (
+    <div role="dialog" aria-modal className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-3">
+      <div className="w-full max-w-2xl rounded-md border bg-card p-3">
+        <div className="mb-2 flex items-center justify-between">
+          <div className="text-xs font-medium">Edit contractor</div>
+          <button className="text-xs text-muted-foreground hover:underline inline-flex items-center gap-1" onClick={onClose}>
+            <X className="h-3.5 w-3.5" /> Close
+          </button>
+        </div>
+        <div className="grid gap-3 md:grid-cols-2">
+          <div className="rounded border p-3">
+            <div className="grid gap-2 text-[11px]">
+              <label className="grid gap-1">
+                <span className="text-[10px] text-muted-foreground">Name</span>
+                <input className="rounded border px-2 py-1" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              </label>
+              <label className="grid gap-1">
+                <span className="text-[10px] text-muted-foreground">Email</span>
+                <input className="rounded border px-2 py-1" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+              </label>
+              <label className="grid gap-1">
+                <span className="text-[10px] text-muted-foreground">Residency</span>
+                <select className="rounded border px-2 py-1" value={form.residency} onChange={(e) => setForm({ ...form, residency: e.target.value as Residency })}>
+                  {["US", "EU", "UK", "ZA", "IN", "BR"].map((r) => (
+                    <option key={r}>{r}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="grid gap-1">
+                <span className="text-[10px] text-muted-foreground">Currency</span>
+                <select className="rounded border px-2 py-1" value={form.currency} onChange={(e) => setForm({ ...form, currency: e.target.value as Currency })}>
+                  {["USD", "EUR", "GBP", "ZAR"].map((c) => (
+                    <option key={c}>{c}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="grid gap-1">
+                <span className="text-[10px] text-muted-foreground">Payout rail</span>
+                <select className="rounded border px-2 py-1" value={form.rail} onChange={(e) => setForm({ ...form, rail: e.target.value as Rail })}>
+                  {["ACH", "Bank", "Payoneer", "Local Partner"].map((r) => (
+                    <option key={r}>{r}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="grid gap-1">
+                <span className="text-[10px] text-muted-foreground">Schedule</span>
+                <select className="rounded border px-2 py-1" value={form.schedule} onChange={(e) => setForm({ ...form, schedule: e.target.value as any })}>
+                  {["weekly", "biweekly", "monthly", "ad-hoc"].map((r) => (
+                    <option key={r}>{r}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          </div>
+          <div className="rounded border p-3">
+            <div className="text-xs font-medium">Status & docs</div>
+            <div className="mt-2 grid gap-2 text-[11px]">
+              <label className="inline-flex items-center gap-2">
+                <input type="checkbox" className="scale-90" checked={form.active} onChange={(e) => setForm({ ...form, active: e.target.checked })} /> Active
+              </label>
+              <label className="inline-flex items-center gap-2">
+                <input type="checkbox" className="scale-90" checked={form.docs.contract} onChange={(e) => setForm({ ...form, docs: { ...form.docs, contract: e.target.checked } })} /> Contract
+              </label>
+              <label className="inline-flex items-center gap-2">
+                <input type="checkbox" className="scale-90" checked={form.docs.taxForm} onChange={(e) => setForm({ ...form, docs: { ...form.docs, taxForm: e.target.checked } })} /> Tax form
+              </label>
+              <label className="inline-flex items-center gap-2">
+                <input type="checkbox" className="scale-90" checked={form.docs.permit} onChange={(e) => setForm({ ...form, docs: { ...form.docs, permit: e.target.checked } })} /> Permit/ID
+              </label>
+            </div>
+          </div>
+        </div>
+        <div className="mt-3 flex items-center justify-end gap-2">
+          <Button variant="outline" className="h-7 px-2 text-xs" onClick={onClose}>Cancel</Button>
+          <Button className="h-7 px-2 text-xs" onClick={() => onSave(form)}>Save changes</Button>
+        </div>
+      </div>
+    </div>
+  );
 }
